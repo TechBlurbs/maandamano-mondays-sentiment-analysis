@@ -1,8 +1,4 @@
-import tweepy 
-import json
-import time
-import os
-import sys
+import tweepy
 
 client = tweepy.Client(bearer_token='')
 query = 'maandamano'
