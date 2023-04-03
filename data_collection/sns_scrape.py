@@ -1,9 +1,7 @@
 # We are going to scrape Twitter using snscrape
 
 import pandas as pd
-import numpy as np
 import snscrape.modules.twitter as sntwitter
-import csv
 import datetime
 
 # Start
