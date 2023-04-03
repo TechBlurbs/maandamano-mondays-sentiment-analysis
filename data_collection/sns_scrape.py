@@ -16,7 +16,15 @@ QUERY = "#MaandamanoMondays OR #MaandamanoThursdays OR #RailaOdinga OR #Azimio"
 # Create a list of tweets
 tweets_list = []
 
-for i,tweet in enumerate(sntwitter.TwitterSearchScraper(QUERY + ' since:' + start_date.strftime('%Y-%m-%d') + ' until:' + end_date.strftime('%Y-%m-%d')).get_items()):
+for i, tweet in enumerate(
+    sntwitter.TwitterSearchScraper(
+        QUERY + 
+        ' since:' + 
+        start_date.strftime('%Y-%m-%d') + 
+        ' until:' + 
+        end_date.strftime('%Y-%m-%d')
+    ).get_items()
+):
     if i>1000:
         break
     tweets_list.append([tweet.date, tweet.id, tweet.content, tweet.user.username])
