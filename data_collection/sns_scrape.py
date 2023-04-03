@@ -27,4 +27,4 @@ tweets_df = pd.DataFrame(tweets_list, columns=['Datetime', 'Tweet Id', 'Text', '
 tweets_df.head()
 
 # Save the dataframe as a CSV file
-tweets_df.to_csv('tweets.csv', sep=',', index = False)
+tweets_df.to_csv('data/tweets.csv', sep=',', index = False)
