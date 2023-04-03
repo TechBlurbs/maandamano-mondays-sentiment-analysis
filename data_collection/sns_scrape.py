@@ -18,9 +18,9 @@ tweets_list = []
 
 for i, tweet in enumerate(
     sntwitter.TwitterSearchScraper(
-        QUERY + 
+        QUERY +
         ' since:' + 
-        start_date.strftime('%Y-%m-%d') + 
+        start_date.strftime('%Y-%m-%d') +
         ' until:' + 
         end_date.strftime('%Y-%m-%d')
     ).get_items()
