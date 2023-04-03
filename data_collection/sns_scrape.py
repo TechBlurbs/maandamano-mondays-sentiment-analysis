@@ -1,4 +1,4 @@
-# We are going to scrape Twitter using snscrape
+"""We are going to scrape Twitter using snscrape"""
 
 import pandas as pd
 import snscrape.modules.twitter as sntwitter
