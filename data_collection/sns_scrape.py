@@ -1,7 +1,8 @@
 """We are going to scrape Twitter using snscrape"""
+
+import datetime
 import pandas as pd
 import snscrape.modules.twitter as sntwitter
-import datetime
 
 # Start
 start_date = datetime.date(2023, 3, 20)
@@ -9,13 +10,13 @@ start_date = datetime.date(2023, 3, 20)
 # End
 end_date = datetime.date(2023, 3, 31)
 
-# Query
-query = "#MaandamanoMondays OR #MaandamanoThursdays OR #RailaOdinga OR #Azimio"
+# QUERY
+QUERY = "#MaandamanoMondays OR #MaandamanoThursdays OR #RailaOdinga OR #Azimio"
 
 # Create a list of tweets
 tweets_list = []
 
-for i,tweet in enumerate(sntwitter.TwitterSearchScraper(query + ' since:' + start_date.strftime('%Y-%m-%d') + ' until:' + end_date.strftime('%Y-%m-%d')).get_items()):
+for i,tweet in enumerate(sntwitter.TwitterSearchScraper(QUERY + ' since:' + start_date.strftime('%Y-%m-%d') + ' until:' + end_date.strftime('%Y-%m-%d')).get_items()):
     if i>1000:
         break
     tweets_list.append([tweet.date, tweet.id, tweet.content, tweet.user.username])
