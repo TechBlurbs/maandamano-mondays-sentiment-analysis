@@ -1,6 +1,13 @@
 # Maandamano-mondays-sentiment-analysis
 A project to gauge the sentiments of Kenyans on the Monday Maandamano's in the country.
 
+# 🎯 Objectives
+
+* To accurately extract people's opinions from a large number of unstructured texts and classify them into sentiment classes, i.e. positive, negative, or neutral.
+* To determine the economic setbacks arising from the close of businesses due to the demonstrations.
+
+# What is Sentiment Analysis
+
 Sentiment analysis is the process of analyzing text data to determine the emotional tone behind it, whether it is positive, negative, or neutral. Sentiment analysis has become an increasingly important area of study in recent years, with applications ranging from customer service to social media monitoring.
 
 Here are some reasons why sentiment analysis is a great project for a data scientist portfolio:
