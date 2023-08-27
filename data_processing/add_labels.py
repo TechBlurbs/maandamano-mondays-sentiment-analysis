@@ -1,3 +1,5 @@
+"""Label the tweets using the sentiment transformer model."""
+
 import pandas as pd
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, AutoConfig
 from datasets import DatasetDict, Dataset
