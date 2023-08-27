@@ -71,7 +71,8 @@ def add_labels():
     # Add the labels to the dataframe
     tweets_data["labels"] = labels
     tweets_data.to_csv("../data/labeled_tweets.csv", index=False)
-    print(f"Labels added to the dataframe (labels in order: {CFG.config.id2label}): \n{tweets_data.head(2)}")
+    print(f"Labels added to the dataframe (labels in order: {CFG.config.id2label}): "
+          f"\n{tweets_data.head(2)}")
 
 
 if __name__ == "__main__":
