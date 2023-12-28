@@ -28,7 +28,7 @@ torch==2.0.1
 tornado==6.3.3
 tqdm==4.66.1
 traitlets==5.9.0
-transformers==4.32.0
+transformers==4.36.0
 tweepy==4.13.0
 urllib3==1.26.18
 pillow>=10.0.1 # not directly required, pinned by Snyk to avoid a vulnerability
