@@ -28,3 +28,26 @@ Sentiment analysis involves a variety of techniques, including natural language 
 There is a wide range of publicly available data sets that can be used for sentiment analysis projects, such as Twitter data, product reviews, and news articles. This accessibility to data allows you to experiment with different approaches to sentiment analysis and showcase your creativity and problem-solving skills.
 
 Overall, sentiment analysis is a great project for a data scientist portfolio as it demonstrates your ability to apply data science techniques to solve real-world problems, work with large amounts of data, and showcase your technical skills. As sentiment analysis becomes increasingly important in many industries, having a project in your portfolio that showcases your proficiency in this area can help set you apart from other candidates and increase your chances of success in the job market.
+
+# Installation Guide
+* Clone the repo
+* Create python environment
+```sh
+python -m venv env
+```
+* Activate python environment
+```sh
+source env/bin/activate
+```
+* Collect the data
+```sh
+python data_collection/sns_scrape.py
+```
+* Preprocess data
+```sh
+python data_processing/add_labels.py
+```
+* Run jupyter notebook
+```sh
+jupyter notebook
+```
