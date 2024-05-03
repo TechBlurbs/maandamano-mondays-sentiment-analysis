@@ -51,7 +51,7 @@ sympy==1.12
 tokenizers==0.15.0
 torch==2.0.1
 tornado==6.3.3
-tqdm==4.66.1
+tqdm==4.66.3
 traitlets==5.9.0
 transformers==4.38.0
 tweepy==4.13.0
