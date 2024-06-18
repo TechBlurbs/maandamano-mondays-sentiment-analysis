@@ -50,7 +50,7 @@ soupsieve==2.4
 sympy==1.12
 tokenizers==0.15.0
 torch==2.0.1
-tornado==6.3.3
+tornado==6.4.1
 tqdm==4.66.3
 traitlets==5.9.0
 transformers==4.38.0
