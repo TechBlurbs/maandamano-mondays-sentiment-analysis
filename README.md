@@ -5,6 +5,18 @@ A project to gauge the sentiments of Kenyans on the Monday Maandamano's in the c
 
 * To accurately extract people's opinions from a large number of unstructured texts and classify them into sentiment classes, i.e. positive, negative, or neutral.
 * To determine the economic setbacks arising from the close of businesses due to the demonstrations.
+* To evaluate model performance using comprehensive metrics including precision, recall, and F1 score.
+
+# 📊 Model Evaluation
+
+This project includes a comprehensive model evaluation system that assesses the sentiment analysis model's performance using various metrics:
+
+- **Precision, Recall, and F1 Score** for each sentiment class
+- **Overall Accuracy** across all predictions
+- **Confusion Matrix** for detailed error analysis
+- **Class Distribution Analysis** to understand data balance
+
+See `EVALUATION_GUIDE.md` for detailed instructions on running the evaluation.
 
 # What is Sentiment Analysis
 
@@ -50,4 +62,8 @@ python data_processing/add_labels.py
 * Run jupyter notebook
 ```sh
 jupyter notebook
+```
+* Evaluate model performance
+```sh
+python model_evaluation.py
 ```
