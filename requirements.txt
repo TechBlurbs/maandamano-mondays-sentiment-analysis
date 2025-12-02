@@ -51,7 +51,7 @@ snscrape==0.6.2.20230320
 soupsieve==2.4
 sympy==1.14.0
 tokenizers==0.21.1
-torch==2.7.1
+torch==2.8.0
 tornado==6.5.1
 tqdm==4.66.3
 traitlets==5.9.0
