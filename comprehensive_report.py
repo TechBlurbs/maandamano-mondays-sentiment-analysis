@@ -8,12 +8,8 @@ for the Maandamano Mondays sentiment analysis project.
 """
 
 import csv
-import json
-import sys
 from collections import Counter, defaultdict
 from datetime import datetime
-import os
-import re
 
 def read_csv_file(filepath):
     """Read CSV file and return data as list of dictionaries."""
@@ -28,14 +24,13 @@ def read_csv_file(filepath):
     except FileNotFoundError:
         print(f"Error: File {filepath} not found")
         return []
-    except Exception as e:
+    except (OSError, csv.Error) as e:
         print(f"Error reading {filepath}: {e}")
         return []
 
 def parse_sentiment_labels(label_string):
     """Parse sentiment label string into probabilities."""
     try:
-        # Handle both formats: [0.1 0.2 0.3] and [0.1, 0.2, 0.3]
         label_string = label_string.strip('[]')
         # Split by comma or whitespace
         if ',' in label_string:
@@ -43,28 +38,28 @@ def parse_sentiment_labels(label_string):
         else:
             values = [float(val) for val in label_string.split()]
         return values
-    except:
+    except (ValueError, TypeError):
         return [0.0, 0.0, 0.0]
 
 def get_sentiment_class(probabilities):
     """Get sentiment class from probabilities [negative, neutral, positive]."""
     if not probabilities or len(probabilities) != 3:
         return "unknown"
-    
+
     max_idx = probabilities.index(max(probabilities))
     classes = ["negative", "neutral", "positive"]
     return classes[max_idx]
 
 def generate_html_report(data):
     """Generate an HTML report with visualizations."""
-    
+
     # Process data for analysis
     sentiment_stats = analyze_sentiment_data(data)
     hashtag_stats = analyze_hashtag_data(data)
     user_stats = analyze_user_data(data)
     text_stats = analyze_text_data(data)
     economic_stats = analyze_economic_impact(data)
-    
+
     html_content = f"""
 <!DOCTYPE html>
 <html lang="en">
@@ -220,7 +215,7 @@ def generate_html_report(data):
             <p><strong>Unique Hashtags:</strong> {len(hashtag_stats):,}</p>
             <p><strong>Avg Confidence:</strong> {sentiment_stats['avg_confidence']:.3f}</p>
         </div>
-        
+
         <div class="card">
             <h3>😊 Sentiment Distribution</h3>
             <div class="sentiment-bar">
@@ -232,7 +227,7 @@ def generate_html_report(data):
             <p>⚪ Neutral: {sentiment_stats['neutral_pct']:.1f}%</p>
             <p>🟢 Positive: {sentiment_stats['positive_pct']:.1f}%</p>
         </div>
-        
+
         <div class="card">
             <h3>📈 Key Metrics</h3>
             <p><strong>Dominant Sentiment:</strong> {sentiment_stats['dominant_sentiment']}</p>
@@ -240,7 +235,7 @@ def generate_html_report(data):
             <p><strong>Economic Tweets:</strong> {economic_stats['economic_tweet_count']}</p>
             <p><strong>Coverage:</strong> {(len(data)/2584*100):.1f}% of raw data</p>
         </div>
-        
+
         <div class="card">
             <h3>👥 User Engagement</h3>
             <p><strong>Most Active:</strong> @{user_stats['most_active_user']}</p>
@@ -307,7 +302,7 @@ def generate_html_report(data):
 </body>
 </html>
 """
-    
+
     return html_content
 
 def analyze_sentiment_data(data):
@@ -315,7 +310,7 @@ def analyze_sentiment_data(data):
     sentiment_counts = Counter()
     confidence_scores = []
     usernames = set()
-    
+
     for row in data:
         usernames.add(row.get('username', ''))
         if 'labels' in row:
@@ -323,24 +318,24 @@ def analyze_sentiment_data(data):
             sentiment = get_sentiment_class(probs)
             sentiment_counts[sentiment] += 1
             confidence_scores.append(max(probs) if probs else 0)
-    
+
     total = sum(sentiment_counts.values())
-    
+
     neg_pct = (sentiment_counts.get('negative', 0) / total * 100) if total > 0 else 0
     neu_pct = (sentiment_counts.get('neutral', 0) / total * 100) if total > 0 else 0
     pos_pct = (sentiment_counts.get('positive', 0) / total * 100) if total > 0 else 0
-    
+
     # Determine dominant sentiment and concern level
     if neg_pct > 50:
         dominant_sentiment = "NEGATIVE"
         concern_level = "HIGH CONCERN"
     elif pos_pct > 50:
-        dominant_sentiment = "POSITIVE" 
+        dominant_sentiment = "POSITIVE"
         concern_level = "LOW CONCERN"
     else:
         dominant_sentiment = "MIXED"
         concern_level = "MODERATE CONCERN"
-    
+
     return {
         'sentiment_counts': sentiment_counts,
         'negative_pct': neg_pct,
@@ -355,40 +350,40 @@ def analyze_sentiment_data(data):
 def analyze_hashtag_data(data):
     """Analyze hashtag patterns and sentiment."""
     hashtag_sentiment = defaultdict(lambda: {"negative": 0, "neutral": 0, "positive": 0})
-    
+
     for row in data:
         if 'labels' in row and 'extract_hashtags' in row:
             probs = parse_sentiment_labels(row['labels'])
             sentiment = get_sentiment_class(probs)
-            
+
             hashtags_text = row.get('extract_hashtags', '')
             hashtags = hashtags_text.split() if hashtags_text else []
-            
+
             for hashtag in hashtags:
                 hashtag_sentiment[hashtag][sentiment] += 1
-    
+
     # Sort by total volume
     hashtag_totals = {}
     for hashtag, sentiments in hashtag_sentiment.items():
         total = sum(sentiments.values())
         if total >= 5:  # Filter hashtags with at least 5 mentions
             hashtag_totals[hashtag] = total
-    
+
     return dict(sorted(hashtag_totals.items(), key=lambda x: x[1], reverse=True))
 
 def analyze_user_data(data):
     """Analyze user engagement patterns."""
     user_tweet_counts = Counter()
-    
+
     for row in data:
         username = row.get('username', '').strip()
         if username:
             user_tweet_counts[username] += 1
-    
+
     multi_tweet_users = len([user for user, count in user_tweet_counts.items() if count > 1])
     most_active_user = user_tweet_counts.most_common(1)[0][0] if user_tweet_counts else "None"
     avg_tweets_per_user = sum(user_tweet_counts.values()) / len(user_tweet_counts) if user_tweet_counts else 0
-    
+
     return {
         'user_tweet_counts': user_tweet_counts,
         'multi_tweet_users': multi_tweet_users,
@@ -399,16 +394,16 @@ def analyze_user_data(data):
 def analyze_text_data(data):
     """Analyze text patterns by sentiment."""
     sentiment_texts = {"negative": [], "neutral": [], "positive": []}
-    
+
     for row in data:
         if 'labels' in row and 'lemmatized_text' in row:
             probs = parse_sentiment_labels(row['labels'])
             sentiment = get_sentiment_class(probs)
-            
+
             text = row.get('lemmatized_text', '').lower()
             if text.strip():
                 sentiment_texts[sentiment].append(text)
-    
+
     # Extract top words for each sentiment
     sentiment_words = {}
     for sentiment, texts in sentiment_texts.items():
@@ -420,7 +415,7 @@ def analyze_text_data(data):
                     if len(word) > 3 and word.isalpha():
                         word_counts[word] += 1
             sentiment_words[sentiment] = dict(word_counts.most_common(10))
-    
+
     return sentiment_words
 
 def analyze_economic_impact(data):
@@ -428,15 +423,15 @@ def analyze_economic_impact(data):
     business_keywords = ['business', 'shop', 'duka', 'economy', 'money', 'work', 'job', 'income', 'trade', 'market']
     economic_keywords = ['cost', 'price', 'expensive', 'cheap', 'afford', 'salary', 'pay', 'buy', 'sell']
     protest_impact_keywords = ['close', 'closed', 'shutdown', 'block', 'blocked', 'stop', 'stopped', 'cancel']
-    
+
     business_tweets = 0
     economic_tweets = 0
     protest_impact_tweets = 0
     economic_tweet_count = 0
-    
+
     for row in data:
         text = row.get('lemmatized_text', '').lower()
-        
+
         if any(keyword in text for keyword in business_keywords):
             business_tweets += 1
         if any(keyword in text for keyword in economic_keywords):
@@ -445,9 +440,9 @@ def analyze_economic_impact(data):
             protest_impact_tweets += 1
         if any(keyword in text for keyword in business_keywords + economic_keywords + protest_impact_keywords):
             economic_tweet_count += 1
-    
+
     total = len(data)
-    
+
     return {
         'business_tweets': business_tweets,
         'business_pct': (business_tweets / total * 100) if total > 0 else 0,
@@ -460,22 +455,32 @@ def analyze_economic_impact(data):
 
 def generate_alert_section(sentiment_stats):
     """Generate alert section based on sentiment analysis."""
-    alert_class = "danger" if sentiment_stats['negative_pct'] > 60 else "success" if sentiment_stats['positive_pct'] > 40 else "alert"
-    
-    if sentiment_stats['negative_pct'] > 60:
-        message = f"⚠️ CRITICAL: {sentiment_stats['negative_pct']:.1f}% negative sentiment indicates severe public concern requiring immediate attention"
-    elif sentiment_stats['negative_pct'] > 40:
-        message = f"⚠️ WARNING: {sentiment_stats['negative_pct']:.1f}% negative sentiment suggests significant public dissatisfaction"
+    neg_pct = sentiment_stats['negative_pct']
+    pos_pct = sentiment_stats['positive_pct']
+
+    if neg_pct > 60:
+        alert_class = "danger"
+        message = (
+            f"⚠️ CRITICAL: {neg_pct:.1f}% negative sentiment indicates"
+            " severe public concern requiring immediate attention"
+        )
+    elif neg_pct > 40:
+        alert_class = "alert"
+        message = (
+            f"⚠️ WARNING: {neg_pct:.1f}% negative sentiment"
+            " suggests significant public dissatisfaction"
+        )
     else:
-        message = f"✅ STABLE: Sentiment distribution appears balanced with manageable concern levels"
-    
+        alert_class = "success" if pos_pct > 40 else "alert"
+        message = "✅ STABLE: Sentiment distribution appears balanced with manageable concern levels"
+
     return f'<div class="alert {alert_class}">{message}</div>'
 
 def generate_hashtag_chart(hashtag_stats):
     """Generate hashtag chart HTML."""
     chart_html = ""
     max_count = max(hashtag_stats.values()) if hashtag_stats else 1
-    
+
     for hashtag, count in list(hashtag_stats.items())[:10]:
         width = (count / max_count) * 100
         chart_html += f"""
@@ -485,7 +490,7 @@ def generate_hashtag_chart(hashtag_stats):
             <div class="bar-value">{count}</div>
         </div>
         """
-    
+
     return chart_html
 
 def generate_user_chart(user_stats):
@@ -493,7 +498,7 @@ def generate_user_chart(user_stats):
     chart_html = ""
     top_users = user_stats['user_tweet_counts'].most_common(10)
     max_count = top_users[0][1] if top_users else 1
-    
+
     for username, count in top_users:
         width = (count / max_count) * 100
         chart_html += f"""
@@ -503,19 +508,19 @@ def generate_user_chart(user_stats):
             <div class="bar-value">{count}</div>
         </div>
         """
-    
+
     return chart_html
 
 def generate_text_analysis_section(text_stats):
     """Generate text analysis section."""
     section_html = ""
     colors = {'negative': '#ff4444', 'neutral': '#888888', 'positive': '#44ff44'}
-    
+
     for sentiment, words in text_stats.items():
         if words:
             section_html += f"<h4>{sentiment.capitalize()} Sentiment Key Terms</h4>"
             section_html += '<div class="bar-chart">'
-            
+
             max_count = max(words.values()) if words else 1
             for word, count in words.items():
                 width = (count / max_count) * 80
@@ -527,14 +532,14 @@ def generate_text_analysis_section(text_stats):
                 </div>
                 """
             section_html += '</div>'
-    
+
     return section_html
 
-def generate_recommendations_section(sentiment_stats, economic_stats):
+def generate_recommendations_section(sentiment_stats, _economic_stats):
     """Generate recommendations based on analysis."""
     recommendations_html = '<div class="recommendations">'
     recommendations_html += '<h3>💡 Key Recommendations</h3>'
-    
+
     if sentiment_stats['negative_pct'] > 60:
         recommendations_html += """
         <h4>🚨 Immediate Actions Required:</h4>
@@ -565,7 +570,7 @@ def generate_recommendations_section(sentiment_stats, economic_stats):
             <li>Build on positive sentiment to strengthen public confidence</li>
         </ul>
         """
-    
+
     recommendations_html += """
     <h4>📊 Long-term Strategic Actions:</h4>
     <ul>
@@ -575,7 +580,7 @@ def generate_recommendations_section(sentiment_stats, economic_stats):
         <li>Implement transparency measures to build public trust</li>
     </ul>
     """
-    
+
     recommendations_html += '</div>'
     return recommendations_html
 
@@ -583,31 +588,31 @@ def main():
     """Main function to generate comprehensive report."""
     print("Generating Comprehensive Sentiment Analysis Report")
     print("=" * 60)
-    
+
     # Load data
     data = read_csv_file('data/extended_labeled_tweets.csv')
     if not data:
         data = read_csv_file('data/labeled_tweets.csv')
-    
+
     if not data:
         print("No labeled data found. Please ensure labeled data exists.")
         return
-    
+
     # Generate HTML report
     html_content = generate_html_report(data)
-    
+
     # Save report
     report_filename = f"maandamano_sentiment_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
-    
+
     try:
         with open(report_filename, 'w', encoding='utf-8') as file:
             file.write(html_content)
-        
+
         print(f"✅ Comprehensive report generated: {report_filename}")
         print(f"📊 Report includes analysis of {len(data):,} tweets")
-        print(f"🌐 Open the HTML file in your browser to view the interactive report")
-        
-    except Exception as e:
+        print("🌐 Open the HTML file in your browser to view the interactive report")
+
+    except OSError as e:
         print(f"Error generating report: {e}")
 
 if __name__ == "__main__":
