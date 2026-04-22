@@ -1,6 +1,5 @@
 """Test script to validate evaluation functionality without external dependencies."""
 
-import sys
 import os
 import csv
 import numpy as np
