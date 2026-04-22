@@ -7,6 +7,8 @@ This script generates a comprehensive report with visualizations and insights
 for the Maandamano Mondays sentiment analysis project.
 """
 
+RAW_TWEET_COUNT = None  # Set to integer to show coverage %, or leave None to skip
+
 import csv
 from collections import Counter, defaultdict
 from datetime import datetime
@@ -66,8 +68,12 @@ def generate_html_report(data):
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maandamano Mondays Sentiment Analysis Report</title>
+    <meta name="description" content="Comprehensive sentiment analysis of {len(data):,} tweets from Kenya's Maandamano Mondays protests — covering public opinion, hashtag trends, user engagement, and economic impact.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>Maandamano Mondays · Sentiment Analysis Report</title>
     <style>
+        body {{ font-family: 'Inter', system-ui, sans-serif; }}
         body {{
             font-family: Arial, sans-serif;
             max-width: 1200px;
@@ -107,20 +113,31 @@ def generate_html_report(data):
             overflow: hidden;
             margin: 10px 0;
         }}
+        /* Flexbox stacked bar — replaces broken float layout */
+        .sentiment-bar {{
+            display: flex !important;
+            height: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 10px 0;
+        }}
         .sentiment-negative {{
-            background: #ff4444;
+            background: #ef4444;
             height: 100%;
-            float: left;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem; font-weight: 700; color: white;
         }}
         .sentiment-neutral {{
-            background: #888888;
+            background: #94a3b8;
             height: 100%;
-            float: left;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem; font-weight: 700; color: white;
         }}
         .sentiment-positive {{
-            background: #44ff44;
+            background: #22c55e;
             height: 100%;
-            float: left;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem; font-weight: 700; color: white;
         }}
         .chart-container {{
             background: white;
@@ -219,9 +236,9 @@ def generate_html_report(data):
         <div class="card">
             <h3>😊 Sentiment Distribution</h3>
             <div class="sentiment-bar">
-                <div class="sentiment-negative" style="width: {sentiment_stats['negative_pct']:.1f}%"></div>
-                <div class="sentiment-neutral" style="width: {sentiment_stats['neutral_pct']:.1f}%"></div>
-                <div class="sentiment-positive" style="width: {sentiment_stats['positive_pct']:.1f}%"></div>
+                <div class="sentiment-negative" style="flex: {sentiment_stats['negative_pct']:.1f}">{sentiment_stats['negative_pct']:.1f}%</div>
+                <div class="sentiment-neutral" style="flex: {sentiment_stats['neutral_pct']:.1f}">{sentiment_stats['neutral_pct']:.1f}%</div>
+                <div class="sentiment-positive" style="flex: {sentiment_stats['positive_pct']:.1f}">{sentiment_stats['positive_pct']:.1f}%</div>
             </div>
             <p>🔴 Negative: {sentiment_stats['negative_pct']:.1f}%</p>
             <p>⚪ Neutral: {sentiment_stats['neutral_pct']:.1f}%</p>
@@ -233,7 +250,7 @@ def generate_html_report(data):
             <p><strong>Dominant Sentiment:</strong> {sentiment_stats['dominant_sentiment']}</p>
             <p><strong>Concern Level:</strong> {sentiment_stats['concern_level']}</p>
             <p><strong>Economic Tweets:</strong> {economic_stats['economic_tweet_count']}</p>
-            <p><strong>Coverage:</strong> {(len(data)/2584*100):.1f}% of raw data</p>
+            <p><strong>Coverage:</strong> {f"{len(data)/RAW_TWEET_COUNT*100:.1f}% of raw data" if RAW_TWEET_COUNT else f"{len(data):,} tweets analysed"}</p>
         </div>
 
         <div class="card">
@@ -391,8 +408,23 @@ def analyze_user_data(data):
         'avg_tweets_per_user': avg_tweets_per_user
     }
 
+# Expanded stopword list — removes noise words that dominated key terms
+_STOPWORDS = {
+    'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of',
+    'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'have',
+    'has', 'had', 'will', 'would', 'could', 'should', 'may', 'might',
+    'must', 'this', 'that', 'these', 'those', 'they', 'them', 'their',
+    'what', 'which', 'when', 'where', 'who', 'whom', 'how', 'why',
+    'from', 'into', 'than', 'then', 'just', 'also', 'very', 'more',
+    'some', 'such', 'each', 'about', 'after', 'before', 'over',
+    'between', 'been', 'being', 'here', 'there', 'your', 'our', 'its',
+    'not', 'all', 'any', 'only', 'same', 'much', 'many', 'most',
+    'other', 'another', 'both', 'even', 'still', 'back', 'well',
+}
+
+
 def analyze_text_data(data):
-    """Analyze text patterns by sentiment."""
+    """Analyze text patterns by sentiment, excluding common stopwords."""
     sentiment_texts = {"negative": [], "neutral": [], "positive": []}
 
     for row in data:
@@ -404,7 +436,7 @@ def analyze_text_data(data):
             if text.strip():
                 sentiment_texts[sentiment].append(text)
 
-    # Extract top words for each sentiment
+    # Extract top words for each sentiment, filtering stopwords
     sentiment_words = {}
     for sentiment, texts in sentiment_texts.items():
         if texts:
@@ -412,7 +444,7 @@ def analyze_text_data(data):
             for text in texts:
                 words = text.split()
                 for word in words:
-                    if len(word) > 3 and word.isalpha():
+                    if len(word) > 3 and word.isalpha() and word not in _STOPWORDS:
                         word_counts[word] += 1
             sentiment_words[sentiment] = dict(word_counts.most_common(10))
 
@@ -465,13 +497,13 @@ def generate_alert_section(sentiment_stats):
             " severe public concern requiring immediate attention"
         )
     elif neg_pct > 40:
-        alert_class = "alert"
+        alert_class = "warning"  # fixed: was "alert" causing .alert.alert double-class
         message = (
             f"⚠️ WARNING: {neg_pct:.1f}% negative sentiment"
             " suggests significant public dissatisfaction"
         )
     else:
-        alert_class = "success" if pos_pct > 40 else "alert"
+        alert_class = "success"
         message = "✅ STABLE: Sentiment distribution appears balanced with manageable concern levels"
 
     return f'<div class="alert {alert_class}">{message}</div>'
@@ -482,7 +514,7 @@ def generate_hashtag_chart(hashtag_stats):
     max_count = max(hashtag_stats.values()) if hashtag_stats else 1
 
     for hashtag, count in list(hashtag_stats.items())[:10]:
-        width = (count / max_count) * 100
+        width = round((count / max_count) * 100, 1)  # rounded to 1 decimal
         chart_html += f"""
         <div class="bar-item">
             <div class="bar-label">#{hashtag}</div>
@@ -500,7 +532,7 @@ def generate_user_chart(user_stats):
     max_count = top_users[0][1] if top_users else 1
 
     for username, count in top_users:
-        width = (count / max_count) * 100
+        width = round((count / max_count) * 100, 1)  # rounded to 1 decimal
         chart_html += f"""
         <div class="bar-item">
             <div class="bar-label">@{username}</div>
