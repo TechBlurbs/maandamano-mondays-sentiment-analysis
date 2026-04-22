@@ -122,7 +122,7 @@ This implementation provides a comprehensive sentiment analysis solution for the
 
 ### Dataset Coverage
 - **Original**: 1,002 tweets (39% of raw data)
-- **Extended**: 2,002 tweets (77% of raw data) 
+- **Extended**: 2,002 tweets (77% of raw data)
 - **Time Period**: March 20-31, 2023
 - **Geographic Scope**: Kenya (focus on Nairobi, Kisumu)
 
@@ -173,7 +173,7 @@ This implementation provides a comprehensive sentiment analysis solution for the
 ## ✅ Requirements Fulfilled
 
 - ✅ **Use trained model to predict sentiment on remaining dataset**
-- ✅ **Perform exploratory data analysis (EDA) to gain insights**  
+- ✅ **Perform exploratory data analysis (EDA) to gain insights**
 - ✅ **Visualize results using appropriate tools**
 - ✅ **Report findings in clear and concise manner**
 - ✅ **Economic impact analysis and recommendations**

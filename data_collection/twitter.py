@@ -2,16 +2,16 @@
 
 import tweepy
 
-client = tweepy.Client(bearer_token='')
-QUERY = 'maandamano'
+client = tweepy.Client(bearer_token="")
+QUERY = "maandamano"
 
 # Get tweets that contain the word maandamano
 
 # -is:retweet means I don't want retweets
 # lang:en is asking for the tweets to be in english
 tweets = client.search_recent_tweets(
-    query=QUERY,
-    tweet_fields=['context_annotations', 'created_at'], max_results=100)
+    query=QUERY, tweet_fields=["context_annotations", "created_at"], max_results=100
+)
 
 # Print tweets
 for tweet in tweets.data:
@@ -34,7 +34,7 @@ print(tweets_dict)
 # Clean the dict
 tweets_dict_clean = {}
 for tweet, tweet_values in tweets_dict.items():
-    tweets_dict_clean[tweet] = tweets_dict[tweet].replace('', ' ')
+    tweets_dict_clean[tweet] = tweets_dict[tweet].replace("", " ")
 
 # Print the clean dict
 print(tweets_dict_clean)

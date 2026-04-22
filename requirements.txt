@@ -1,12 +1,17 @@
-# Direct dependencies — only packages explicitly imported in the codebase
+# Direct dependencies — packages explicitly imported in the codebase.
+# Minimum-version bounds used (no exact pins) so pip can resolve the right
+# wheel for the running Python version (CI targets 3.10 & 3.11).
+
+# data_processing/add_labels.py  |  data_collection/sns_scrape.py
+pandas>=1.5.3
+
 # data_processing/add_labels.py
-pandas==3.0.2
-transformers==5.5.4
-datasets==4.8.4
-scipy==1.17.1
+transformers>=4.35.0
+datasets>=2.14.0
+scipy>=1.10.0
 
 # data_collection/twitter.py
-tweepy==4.16.0
+tweepy>=4.14.0
 
 # data_collection/sns_scrape.py
-snscrape==0.7.0.20230622
+snscrape>=0.6.2

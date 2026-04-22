@@ -1,4 +1,4 @@
-### The data is labeled by multilingual XLM-roBERTa-base model 
+### The data is labeled by multilingual XLM-roBERTa-base model
 
 trained on ~198M tweets and fine-tuned for sentiment analysis. The sentiment fine-tuning was done on 8 languages (Ar, En, Fr, De, Hi, It, Sp, Pt) <br>
 The model is : "cardiffnlp/twitter-xlm-roberta-base-sentiment" and hosted on huggingface

@@ -12,10 +12,11 @@ import csv
 import os
 import re
 
+
 def read_csv_data(filepath):
     """Read CSV file and return data."""
     try:
-        with open(filepath, 'r', encoding='utf-8') as file:
+        with open(filepath, "r", encoding="utf-8") as file:
             reader = csv.DictReader(file)
             data = list(reader)
         print(f"Loaded {len(data)} records from {filepath}")
@@ -27,43 +28,69 @@ def read_csv_data(filepath):
         print(f"Error reading {filepath}: {e}")
         return []
 
+
 def clean_text_simple(text):
     """Simple text cleaning function."""
     if not text:
         return ""
 
     # Remove URLs
-    url_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$\-_@.&+]|[!*(),\\]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
-    text = re.sub(url_pattern, '', text)
+    url_pattern = r"http[s]?://(?:[a-zA-Z]|[0-9]|[$\-_@.&+]|[!*(),\\]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
+    text = re.sub(url_pattern, "", text)
 
     # Remove mentions
-    text = re.sub(r'@\w+', '', text)
+    text = re.sub(r"@\w+", "", text)
 
     # Remove extra whitespace
-    text = ' '.join(text.split())
+    text = " ".join(text.split())
 
     # Basic lemmatization (simplified)
     # Remove common stopwords and clean
     stopwords = {
-        'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of',
-        'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'have',
-        'has', 'had', 'will', 'would', 'could', 'should', 'may', 'might', 'must',
+        "the",
+        "and",
+        "or",
+        "but",
+        "in",
+        "on",
+        "at",
+        "to",
+        "for",
+        "of",
+        "with",
+        "by",
+        "is",
+        "are",
+        "was",
+        "were",
+        "be",
+        "been",
+        "have",
+        "has",
+        "had",
+        "will",
+        "would",
+        "could",
+        "should",
+        "may",
+        "might",
+        "must",
     }
 
     words = text.lower().split()
-    cleaned_words = [
-        word for word in words if word not in stopwords and len(word) > 2
-    ]
+    cleaned_words = [word for word in words if word not in stopwords and len(word) > 2]
 
-    return ' '.join(cleaned_words)
+    return " ".join(cleaned_words)
+
 
 def extract_hashtags_simple(text):
     """Simple hashtag extraction."""
     if not text:
         return ""
 
-    hashtags = re.findall(r'#\w+', text)
-    return ' '.join([tag[1:] for tag in hashtags])  # Remove # symbol
+    hashtags = re.findall(r"#\w+", text)
+    return " ".join([tag[1:] for tag in hashtags])  # Remove # symbol
+
 
 def predict_sentiment_simple(text):
     """Simple rule-based sentiment prediction (fallback)."""
@@ -74,14 +101,52 @@ def predict_sentiment_simple(text):
 
     # Simple keyword-based sentiment scoring
     negative_words = [
-        'bad', 'hate', 'angry', 'sad', 'terrible', 'awful', 'worst', 'horrible',
-        'violence', 'kill', 'death', 'fight', 'war', 'pain', 'hurt', 'cry',
-        'problem', 'wrong', 'fail', 'broken', 'corrupt', 'evil', 'disaster',
+        "bad",
+        "hate",
+        "angry",
+        "sad",
+        "terrible",
+        "awful",
+        "worst",
+        "horrible",
+        "violence",
+        "kill",
+        "death",
+        "fight",
+        "war",
+        "pain",
+        "hurt",
+        "cry",
+        "problem",
+        "wrong",
+        "fail",
+        "broken",
+        "corrupt",
+        "evil",
+        "disaster",
     ]
     positive_words = [
-        'good', 'love', 'happy', 'great', 'best', 'wonderful', 'amazing', 'excellent',
-        'perfect', 'beautiful', 'success', 'win', 'hope', 'peace', 'help', 'support',
-        'thank', 'bless', 'joy', 'proud', 'victory',
+        "good",
+        "love",
+        "happy",
+        "great",
+        "best",
+        "wonderful",
+        "amazing",
+        "excellent",
+        "perfect",
+        "beautiful",
+        "success",
+        "win",
+        "hope",
+        "peace",
+        "help",
+        "support",
+        "thank",
+        "bless",
+        "joy",
+        "proud",
+        "victory",
     ]
 
     neg_score = sum(1 for word in negative_words if word in text_lower)
@@ -98,17 +163,18 @@ def predict_sentiment_simple(text):
 
     # Ensure probabilities sum to 1
     total = neg_prob + neu_prob + pos_prob
-    return [neg_prob/total, neu_prob/total, pos_prob/total]
+    return [neg_prob / total, neu_prob / total, pos_prob / total]
+
 
 def _build_processed_indexes(labeled_tweets):
     """Build sets of already-processed tweet IDs and text identifiers."""
     processed_ids = set()
     processed_texts = set()
     for tweet in labeled_tweets:
-        if 'Tweet Id' in tweet:
-            processed_ids.add(tweet.get('Tweet Id', ''))
-        username = tweet.get('username', '')
-        text = tweet.get('lemmatized_text', '')
+        if "Tweet Id" in tweet:
+            processed_ids.add(tweet.get("Tweet Id", ""))
+        username = tweet.get("username", "")
+        text = tweet.get("lemmatized_text", "")
         if username and text:
             processed_texts.add(f"{username}:{text[:50]}")
     return processed_ids, processed_texts
@@ -118,9 +184,9 @@ def _find_unprocessed_tweets(raw_tweets, processed_ids, processed_texts):
     """Return tweets that have not yet been labeled."""
     unprocessed = []
     for tweet in raw_tweets:
-        tweet_id = tweet.get('Tweet Id', '')
-        username = tweet.get('Username', '')
-        text = tweet.get('Text', '')
+        tweet_id = tweet.get("Tweet Id", "")
+        username = tweet.get("Username", "")
+        text = tweet.get("Text", "")
         identifier = f"{username}:{text[:50]}" if username and text else ""
         if tweet_id not in processed_ids and identifier not in processed_texts:
             unprocessed.append(tweet)
@@ -134,15 +200,17 @@ def _label_tweets(unprocessed_tweets):
     for i, tweet in enumerate(unprocessed_tweets):
         if i % 100 == 0:
             print(f"Processed {i}/{len(unprocessed_tweets)} tweets...")
-        text = tweet.get('Text', '')
+        text = tweet.get("Text", "")
         if not text:
             continue
-        newly_processed.append({
-            'username': tweet.get('Username', ''),
-            'lemmatized_text': clean_text_simple(text),
-            'extract_hashtags': extract_hashtags_simple(text),
-            'labels': str(predict_sentiment_simple(text)),
-        })
+        newly_processed.append(
+            {
+                "username": tweet.get("Username", ""),
+                "lemmatized_text": clean_text_simple(text),
+                "extract_hashtags": extract_hashtags_simple(text),
+                "labels": str(predict_sentiment_simple(text)),
+            }
+        )
     print(f"Successfully processed {len(newly_processed)} new tweets")
     return newly_processed
 
@@ -150,7 +218,7 @@ def _label_tweets(unprocessed_tweets):
 def _save_extended_dataset(output_file, all_labeled):
     """Write the combined labeled dataset to CSV."""
     try:
-        with open(output_file, 'w', newline='', encoding='utf-8') as file:
+        with open(output_file, "w", newline="", encoding="utf-8") as file:
             fieldnames = all_labeled[0].keys()
             writer = csv.DictWriter(file, fieldnames=fieldnames)
             writer.writeheader()
@@ -166,8 +234,8 @@ def process_remaining_tweets():
     print("Processing Remaining Tweets for Sentiment Analysis")
     print("=" * 50)
 
-    raw_tweets = read_csv_data('data/tweets.csv')
-    labeled_tweets = read_csv_data('data/labeled_tweets.csv')
+    raw_tweets = read_csv_data("data/tweets.csv")
+    labeled_tweets = read_csv_data("data/labeled_tweets.csv")
 
     if not raw_tweets:
         print("No raw tweets found to process")
@@ -177,7 +245,9 @@ def process_remaining_tweets():
     print(f"Already labeled: {len(labeled_tweets)}")
 
     processed_ids, processed_texts = _build_processed_indexes(labeled_tweets)
-    unprocessed_tweets = _find_unprocessed_tweets(raw_tweets, processed_ids, processed_texts)
+    unprocessed_tweets = _find_unprocessed_tweets(
+        raw_tweets, processed_ids, processed_texts
+    )
 
     print(f"Unprocessed tweets found: {len(unprocessed_tweets)}")
 
@@ -189,7 +259,7 @@ def process_remaining_tweets():
 
     if newly_processed:
         all_labeled = labeled_tweets + newly_processed
-        _save_extended_dataset('data/extended_labeled_tweets.csv', all_labeled)
+        _save_extended_dataset("data/extended_labeled_tweets.csv", all_labeled)
         print("\nProcessing Summary:")
         print(f"• Original labeled tweets: {len(labeled_tweets)}")
         print(f"• Newly processed tweets: {len(newly_processed)}")
@@ -198,19 +268,20 @@ def process_remaining_tweets():
     else:
         print("No new tweets to process")
 
+
 def analyze_processing_gaps():
     """Analyze what tweets might be missing from processing."""
     print("\nAnalyzing Processing Gaps...")
 
-    raw_tweets = read_csv_data('data/tweets.csv')
-    labeled_tweets = read_csv_data('data/labeled_tweets.csv')
+    raw_tweets = read_csv_data("data/tweets.csv")
+    labeled_tweets = read_csv_data("data/labeled_tweets.csv")
 
     if not raw_tweets or not labeled_tweets:
         return
 
     # Check for patterns in unprocessed tweets
-    raw_usernames = [tweet.get('Username', '') for tweet in raw_tweets]
-    labeled_usernames = [tweet.get('username', '') for tweet in labeled_tweets]
+    raw_usernames = [tweet.get("Username", "") for tweet in raw_tweets]
+    labeled_usernames = [tweet.get("username", "") for tweet in labeled_tweets]
 
     unique_raw_users = set(raw_usernames)
     unique_labeled_users = set(labeled_usernames)
@@ -224,13 +295,14 @@ def analyze_processing_gaps():
     if missing_users:
         print(f"Sample missing users: {list(missing_users)[:10]}")
 
+
 def main():
     """Main function."""
     print("Extended Tweet Processing for Sentiment Analysis")
     print("=" * 60)
 
     # Check if all required files exist
-    required_files = ['data/tweets.csv', 'data/labeled_tweets.csv']
+    required_files = ["data/tweets.csv", "data/labeled_tweets.csv"]
 
     for file_path in required_files:
         if not os.path.exists(file_path):
@@ -246,6 +318,7 @@ def main():
     print("\n✅ Processing complete!")
     print("Note: This uses a simplified sentiment analysis approach.")
     print("For best results, use the transformer-based model in add_labels.py")
+
 
 if __name__ == "__main__":
     main()
