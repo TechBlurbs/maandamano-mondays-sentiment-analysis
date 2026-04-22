@@ -1,6 +1,5 @@
 """Simple test script without external dependencies."""
 
-import sys
 import os
 import csv
 
