@@ -1,4 +1,20 @@
-env
-.idea
+# Virtual environments
+.venv/
+env/
+venv/
+
+# IDE
+.idea/
+
+# Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+.Python
+
+# macOS
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
