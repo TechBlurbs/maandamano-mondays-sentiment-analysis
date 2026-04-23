@@ -1,0 +1,75 @@
+repos:
+  # --- Standard file hygiene ---
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=5000"]  # warn on files >5 MB (e.g. accidental model weights)
+      - id: detect-private-key
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+
+  # --- Python import sorting ---
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: ["--profile", "black"]
+
+  # --- Python style (black) ---
+  - repo: https://github.com/psf/black
+    rev: 24.4.2
+    hooks:
+      - id: black
+        language_version: python3
+
+  # --- Linting (ruff) ---
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.1
+    hooks:
+      - id: ruff
+        args: [ --fix ]
+
+  # --- Type Checking (mypy) ---
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.10.0
+    hooks:
+      - id: mypy
+        additional_dependencies: [ types-requests, types-PyYAML ]
+
+  # --- Linting (pylint — mirrors the GitHub Actions step) ---
+  - repo: local
+    hooks:
+      - id: pylint
+        name: pylint
+        entry: .venv/bin/pylint
+        language: system
+        types: [python]
+        args:
+          - "--rcfile=.pylintrc"
+          - "--fail-under=7.0"   # mirror a reasonable CI threshold
+
+  # --- requirements.txt: catch exact-pin version issues ---
+  - repo: local
+    hooks:
+      - id: check-requirements-no-exact-pins
+        name: "requirements — no exact pins (==)"
+        entry: |
+          python3 -c "
+          import sys, re, pathlib
+          reqs = pathlib.Path('requirements.txt').read_text()
+          lines = [l for l in reqs.splitlines() if l.strip() and not l.startswith('#')]
+          bad = [l for l in lines if re.search(r'==', l)]
+          if bad:
+              print('Exact pins found in requirements.txt (breaks multi-python CI):')
+              [print('  ', b) for b in bad]
+              sys.exit(1)
+          "
+        language: system
+        pass_filenames: false
+        files: requirements\.txt

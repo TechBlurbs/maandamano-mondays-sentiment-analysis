@@ -21,7 +21,7 @@ def read_csv_file(filepath):
     """Read CSV file and return data as list of dictionaries."""
     data = []
     try:
-        with open(filepath, 'r', encoding='utf-8') as file:
+        with open(filepath, "r", encoding="utf-8") as file:
             reader = csv.DictReader(file)
             for row in reader:
                 data.append(row)
@@ -38,7 +38,7 @@ def read_csv_file(filepath):
 def parse_sentiment_labels(label_string):
     """Parse sentiment label string into probabilities."""
     try:
-        label_string = label_string.strip('[]')
+        label_string = label_string.strip("[]")
         values = label_string.split()
         return [float(val) for val in values]
     except (ValueError, TypeError):
@@ -61,8 +61,8 @@ def analyze_sentiment_distribution(data):
     confidence_scores = []
 
     for row in data:
-        if 'labels' in row:
-            probs = parse_sentiment_labels(row['labels'])
+        if "labels" in row:
+            probs = parse_sentiment_labels(row["labels"])
             sentiment = get_sentiment_class(probs)
             sentiment_counts[sentiment] += 1
             confidence_scores.append(max(probs) if probs else 0)
@@ -74,7 +74,9 @@ def analyze_sentiment_distribution(data):
         percentage = (count / total * 100) if total > 0 else 0
         print(f"{sentiment.capitalize()}: {count} tweets ({percentage:.1f}%)")
 
-    avg_confidence = sum(confidence_scores) / len(confidence_scores) if confidence_scores else 0
+    avg_confidence = (
+        sum(confidence_scores) / len(confidence_scores) if confidence_scores else 0
+    )
     print(f"\nAverage Confidence Score: {avg_confidence:.3f}")
 
     return sentiment_counts, confidence_scores
@@ -82,30 +84,35 @@ def analyze_sentiment_distribution(data):
 
 def analyze_hashtags_by_sentiment(data):
     """Analyze hashtag usage patterns by sentiment."""
-    hashtag_sentiment = defaultdict(lambda: {"negative": 0, "neutral": 0, "positive": 0})
+    hashtag_sentiment = defaultdict(
+        lambda: {"negative": 0, "neutral": 0, "positive": 0}
+    )
 
     for row in data:
-        if 'labels' in row and 'extract_hashtags' in row:
-            probs = parse_sentiment_labels(row['labels'])
+        if "labels" in row and "extract_hashtags" in row:
+            probs = parse_sentiment_labels(row["labels"])
             sentiment = get_sentiment_class(probs)
 
             # Extract hashtags
-            hashtags_text = row.get('extract_hashtags', '')
+            hashtags_text = row.get("extract_hashtags", "")
             hashtags = hashtags_text.split() if hashtags_text else []
 
             for hashtag in hashtags:
                 hashtag_sentiment[hashtag][sentiment] += 1
 
     print("\n=== HASHTAG SENTIMENT ANALYSIS ===")
-    for hashtag, sentiments in sorted(hashtag_sentiment.items(),
-                                     key=lambda x: sum(x[1].values()), reverse=True)[:10]:
+    for hashtag, sentiments in sorted(
+        hashtag_sentiment.items(), key=lambda x: sum(x[1].values()), reverse=True
+    )[:10]:
         total = sum(sentiments.values())
         if total >= 3:  # Only show hashtags with at least 3 mentions
             neg_pct = sentiments["negative"] / total * 100
             neu_pct = sentiments["neutral"] / total * 100
             pos_pct = sentiments["positive"] / total * 100
-            print(f"#{hashtag}: Neg:{neg_pct:.1f}% "
-                  f"Neu:{neu_pct:.1f}% Pos:{pos_pct:.1f}% (n={total})")
+            print(
+                f"#{hashtag}: Neg:{neg_pct:.1f}% "
+                f"Neu:{neu_pct:.1f}% Pos:{pos_pct:.1f}% (n={total})"
+            )
 
     return hashtag_sentiment
 
@@ -115,11 +122,11 @@ def analyze_text_patterns(data):
     sentiment_texts = {"negative": [], "neutral": [], "positive": []}
 
     for row in data:
-        if 'labels' in row and 'lemmatized_text' in row:
-            probs = parse_sentiment_labels(row['labels'])
+        if "labels" in row and "lemmatized_text" in row:
+            probs = parse_sentiment_labels(row["labels"])
             sentiment = get_sentiment_class(probs)
 
-            text = row.get('lemmatized_text', '').lower()
+            text = row.get("lemmatized_text", "").lower()
             if text.strip():
                 sentiment_texts[sentiment].append(text)
 
@@ -131,7 +138,9 @@ def analyze_text_patterns(data):
             for text in texts:
                 words = text.split()
                 for word in words:
-                    if len(word) > 3 and word.isalpha():  # Filter short words and non-alphabetic
+                    if (
+                        len(word) > 3 and word.isalpha()
+                    ):  # Filter short words and non-alphabetic
                         word_counts[word] += 1
 
             print(f"\nTop words in {sentiment} tweets:")
@@ -146,10 +155,10 @@ def analyze_user_patterns(data):
     user_sentiments = defaultdict(list)
 
     for row in data:
-        if 'labels' in row and 'username' in row:
-            probs = parse_sentiment_labels(row['labels'])
+        if "labels" in row and "username" in row:
+            probs = parse_sentiment_labels(row["labels"])
             sentiment = get_sentiment_class(probs)
-            username = row.get('username', '').strip()
+            username = row.get("username", "").strip()
 
             if username:
                 user_sentiments[username].append(sentiment)
@@ -157,32 +166,40 @@ def analyze_user_patterns(data):
     print("\n=== USER ENGAGEMENT PATTERNS ===")
 
     # Users with multiple tweets
-    multi_tweet_users = {user: sentiments for user, sentiments in user_sentiments.items()
-                        if len(sentiments) > 1}
+    multi_tweet_users = {
+        user: sentiments
+        for user, sentiments in user_sentiments.items()
+        if len(sentiments) > 1
+    }
 
     print(f"Total unique users: {len(user_sentiments)}")
     print(f"Users with multiple tweets: {len(multi_tweet_users)}")
 
     # Most active users
     print("\nMost active users:")
-    for user, sentiments in sorted(user_sentiments.items(),
-                                  key=lambda x: len(x[1]), reverse=True)[:10]:
+    for user, sentiments in sorted(
+        user_sentiments.items(), key=lambda x: len(x[1]), reverse=True
+    )[:10]:
         sentiment_counts = Counter(sentiments)
-        print(f"  @{user}: {len(sentiments)} tweets - "
-              f"Neg:{sentiment_counts['negative']} "
-              f"Neu:{sentiment_counts['neutral']} "
-              f"Pos:{sentiment_counts['positive']}")
+        print(
+            f"  @{user}: {len(sentiments)} tweets - "
+            f"Neg:{sentiment_counts['negative']} "
+            f"Neu:{sentiment_counts['neutral']} "
+            f"Pos:{sentiment_counts['positive']}"
+        )
 
     return user_sentiments
 
 
-def generate_insights_report(sentiment_counts, hashtag_sentiment, sentiment_texts, user_sentiments):
+def generate_insights_report(
+    sentiment_counts, hashtag_sentiment, sentiment_texts, user_sentiments
+):
     """Generate insights and economic impact analysis."""
     total_tweets = sum(sentiment_counts.values())
 
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print("MAANDAMANO MONDAYS SENTIMENT ANALYSIS REPORT")
-    print("="*50)
+    print("=" * 50)
 
     print("\n📊 DATASET OVERVIEW:")
     print(f"• Total analyzed tweets: {total_tweets}")
@@ -191,9 +208,9 @@ def generate_insights_report(sentiment_counts, hashtag_sentiment, sentiment_text
 
     print("\n😊 SENTIMENT SUMMARY:")
     if total_tweets > 0:
-        neg_pct = sentiment_counts.get('negative', 0) / total_tweets * 100
-        neu_pct = sentiment_counts.get('neutral', 0) / total_tweets * 100
-        pos_pct = sentiment_counts.get('positive', 0) / total_tweets * 100
+        neg_pct = sentiment_counts.get("negative", 0) / total_tweets * 100
+        neu_pct = sentiment_counts.get("neutral", 0) / total_tweets * 100
+        pos_pct = sentiment_counts.get("positive", 0) / total_tweets * 100
 
         print(f"• Negative sentiment: {neg_pct:.1f}%")
         print(f"• Neutral sentiment: {neu_pct:.1f}%")
@@ -214,13 +231,22 @@ def generate_insights_report(sentiment_counts, hashtag_sentiment, sentiment_text
         print(f"• Economic concern level: {impact}")
 
         # Hashtag insights
-        maandamano_hashtags = [h for h in hashtag_sentiment.keys()
-                              if 'maandamano' in h.lower()]
+        maandamano_hashtags = [
+            h for h in hashtag_sentiment.keys() if "maandamano" in h.lower()
+        ]
         if maandamano_hashtags:
             print(f"• Maandamano-related hashtags found: {len(maandamano_hashtags)}")
 
         # Business impact insights
-        business_keywords = ['business', 'shop', 'duka', 'economy', 'money', 'work', 'job']
+        business_keywords = [
+            "business",
+            "shop",
+            "duka",
+            "economy",
+            "money",
+            "work",
+            "job",
+        ]
         business_mentions = 0
         for texts in sentiment_texts.values():
             for text in texts:
@@ -231,7 +257,7 @@ def generate_insights_report(sentiment_counts, hashtag_sentiment, sentiment_text
             print(f"• Tweets mentioning business/economic terms: {business_mentions}")
 
     print("\n💡 RECOMMENDATIONS:")
-    if sentiment_counts.get('negative', 0) > sentiment_counts.get('positive', 0):
+    if sentiment_counts.get("negative", 0) > sentiment_counts.get("positive", 0):
         print("• High negative sentiment suggests significant public concern")
         print("• Recommend addressing underlying issues to improve public sentiment")
         print("• Monitor economic impact on businesses, especially in affected areas")
@@ -255,14 +281,19 @@ def create_simple_visualizations(sentiment_counts, hashtag_sentiment):
             percentage = count / total * 100
             bar_length = int(percentage / 2)  # Scale for display
             bar_display = "█" * bar_length
-            print(f"{sentiment.capitalize():>8}: {bar_display} {percentage:.1f}% ({count})")
+            print(
+                f"{sentiment.capitalize():>8}: {bar_display} {percentage:.1f}% ({count})"
+            )
 
     print("\n=== TOP HASHTAGS BY VOLUME ===")
-    hashtag_totals = {hashtag: sum(sentiments.values())
-                     for hashtag, sentiments in hashtag_sentiment.items()}
+    hashtag_totals = {
+        hashtag: sum(sentiments.values())
+        for hashtag, sentiments in hashtag_sentiment.items()
+    }
 
-    for hashtag, total in sorted(hashtag_totals.items(),
-                                key=lambda x: x[1], reverse=True)[:10]:
+    for hashtag, total in sorted(
+        hashtag_totals.items(), key=lambda x: x[1], reverse=True
+    )[:10]:
         bar_length = min(total, 20)  # Cap at 20 for display
         bar_display = "▓" * bar_length
         print(f"#{hashtag:>15}: {bar_display} ({total})")
@@ -273,8 +304,8 @@ def process_remaining_tweets():
     print("\n=== PROCESSING REMAINING TWEETS ===")
 
     # Load raw tweets
-    raw_tweets = read_csv_file('data/tweets.csv')
-    labeled_tweets = read_csv_file('data/labeled_tweets.csv')
+    raw_tweets = read_csv_file("data/tweets.csv")
+    labeled_tweets = read_csv_file("data/labeled_tweets.csv")
 
     if not raw_tweets:
         print("No raw tweets found to process")
@@ -285,16 +316,16 @@ def process_remaining_tweets():
 
     # Get already processed tweets
     for row in labeled_tweets:
-        if 'username' in row:
-            labeled_usernames.add(row['username'])
-        if 'lemmatized_text' in row:
-            labeled_texts.add(row['lemmatized_text'])
+        if "username" in row:
+            labeled_usernames.add(row["username"])
+        if "lemmatized_text" in row:
+            labeled_texts.add(row["lemmatized_text"])
 
     # Find unprocessed tweets
     unprocessed = []
     for tweet in raw_tweets:
-        username = tweet.get('Username', '')
-        text = tweet.get('Text', '')
+        username = tweet.get("Username", "")
+        text = tweet.get("Text", "")
 
         # Simple check if not already processed
         if username not in labeled_usernames or text not in labeled_texts:
@@ -313,9 +344,9 @@ def main():
     print("=" * 50)
 
     # Try to load extended dataset first, fall back to original
-    labeled_data = read_csv_file('data/extended_labeled_tweets.csv')
+    labeled_data = read_csv_file("data/extended_labeled_tweets.csv")
     if not labeled_data:
-        labeled_data = read_csv_file('data/labeled_tweets.csv')
+        labeled_data = read_csv_file("data/labeled_tweets.csv")
 
     if not labeled_data:
         print("No labeled data found. Please ensure labeled_tweets.csv exists.")
@@ -331,7 +362,9 @@ def main():
     create_simple_visualizations(sentiment_counts, hashtag_sentiment)
 
     # Generate insights report
-    generate_insights_report(sentiment_counts, hashtag_sentiment, sentiment_texts, user_sentiments)
+    generate_insights_report(
+        sentiment_counts, hashtag_sentiment, sentiment_texts, user_sentiments
+    )
 
     # Check for remaining tweets to process
     process_remaining_tweets()

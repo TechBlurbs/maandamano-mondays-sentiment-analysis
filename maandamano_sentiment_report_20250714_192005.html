@@ -1,557 +1,349 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maandamano Mondays Sentiment Analysis Report</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            line-height: 1.6;
-        }
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 10px;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .summary-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        .card {
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .card h3 {
-            margin-top: 0;
-            color: #333;
-        }
-        .sentiment-bar {
-            height: 30px;
-            background: #f0f0f0;
-            border-radius: 15px;
-            overflow: hidden;
-            margin: 10px 0;
-        }
-        .sentiment-negative {
-            background: #ff4444;
-            height: 100%;
-            float: left;
-        }
-        .sentiment-neutral {
-            background: #888888;
-            height: 100%;
-            float: left;
-        }
-        .sentiment-positive {
-            background: #44ff44;
-            height: 100%;
-            float: left;
-        }
-        .chart-container {
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        .bar-chart {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .bar-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .bar-label {
-            width: 150px;
-            font-size: 12px;
-        }
-        .bar {
-            height: 20px;
-            background: #4CAF50;
-            min-width: 20px;
-            border-radius: 3px;
-        }
-        .bar-value {
-            font-size: 12px;
-            font-weight: bold;
-        }
-        .recommendations {
-            background: #f8f9fa;
-            border-left: 4px solid #007bff;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        .alert {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            color: #856404;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 15px 0;
-        }
-        .alert.danger {
-            background: #f8d7da;
-            border-color: #f5c6cb;
-            color: #721c24;
-        }
-        .alert.success {
-            background: #d4edda;
-            border-color: #c3e6cb;
-            color: #155724;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        .footer {
-            margin-top: 50px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            text-align: center;
-            color: #666;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Comprehensive sentiment analysis of 2,002 tweets from Kenya's Maandamano Mondays protests — covering public opinion, hashtag trends, user engagement, and economic impact.">
+  <title>Maandamano Mondays · Sentiment Analysis Report</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #f0f4f8;
+      --surface: #ffffff;
+      --surface-2: #f8fafc;
+      --border: #e2e8f0;
+      --text: #1a202c;
+      --muted: #64748b;
+      --accent: #667eea;
+      --accent2: #764ba2;
+      --neg: #ef4444;
+      --neu: #94a3b8;
+      --pos: #22c55e;
+      --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.08);
+      --radius: 12px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 24px 20px 80px; }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      color: white; padding: 48px 40px; border-radius: var(--radius);
+      text-align: center; margin-bottom: 28px; position: relative; overflow: hidden;
+    }
+    .header::before {
+      content: ''; position: absolute; inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");
+    }
+    .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; position: relative; }
+    .header p { font-size: 1rem; opacity: 0.85; position: relative; }
+    .header .meta { font-size: 0.82rem; opacity: 0.6; margin-top: 10px; position: relative; }
+
+    /* Alert */
+    .alert { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-radius: var(--radius); margin-bottom: 28px; font-weight: 500; font-size: 0.95rem; }
+    .alert.success { background: #dcfce7; border: 1px solid #86efac; color: #166534; }
+    .alert.warning { background: #fef9c3; border: 1px solid #fde047; color: #854d0e; }
+    .alert.danger  { background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; }
+
+    /* Cards */
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 28px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
+    .card-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-bottom: 16px; }
+    .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border); }
+    .stat-row:last-child { border-bottom: none; }
+    .stat-label { font-size: 0.85rem; color: var(--muted); }
+    .stat-value { font-size: 0.9rem; font-weight: 600; }
+
+    /* Sentiment stacked bar (flexbox — no floats) */
+    .sentiment-stack { display: flex; height: 28px; border-radius: 8px; overflow: hidden; margin: 16px 0 12px; }
+    .seg { display: flex; align-items: center; justify-content: center; font-size: 0.68rem; font-weight: 700; color: white; }
+    .seg-neg { background: var(--neg); flex: 36.2; }
+    .seg-neu { background: var(--neu); flex: 50.3; }
+    .seg-pos { background: var(--pos); flex: 13.5; }
+    .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--muted); }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+
+    /* Chart cards */
+    .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
+    @media(max-width:680px) { .chart-row { grid-template-columns: 1fr; } }
+    .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
+    .chart-card h3 { font-size: 0.92rem; font-weight: 600; margin-bottom: 20px; }
+    .chart-card-full { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); margin-bottom: 28px; }
+    .chart-card-full h3 { font-size: 0.92rem; font-weight: 600; margin-bottom: 20px; }
+
+    /* Table */
+    table { width: 100%; border-collapse: collapse; }
+    th { background: var(--surface-2); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); padding: 10px 14px; text-align: left; border-bottom: 2px solid var(--border); }
+    td { padding: 12px 14px; font-size: 0.875rem; border-bottom: 1px solid var(--border); }
+    tr:last-child td { border-bottom: none; }
+    .mini-track { background: var(--border); border-radius: 4px; height: 6px; width: 120px; margin-top: 4px; }
+    .mini-fill { height: 6px; border-radius: 4px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+
+    /* Tabs */
+    .tabs { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 24px; gap: 0; }
+    .tab-btn { padding: 10px 22px; font-size: 0.85rem; font-weight: 500; cursor: pointer; border: none; background: transparent; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -2px; font-family: inherit; transition: color .2s, border-color .2s; }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+    .tab-btn:hover:not(.active) { color: var(--text); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Recommendations */
+    .rec { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow); margin-bottom: 28px; }
+    .rec h3 { font-size: 1rem; font-weight: 700; margin-bottom: 18px; }
+    .rec h4 { font-size: 0.875rem; font-weight: 600; margin: 20px 0 10px; }
+    .rec ul { padding-left: 20px; }
+    .rec li { font-size: 0.875rem; color: var(--muted); margin-bottom: 6px; }
+
+    /* Footer */
+    .footer { text-align: center; color: var(--muted); font-size: 0.8rem; padding-top: 32px; border-top: 1px solid var(--border); }
+    .footer p { margin-bottom: 6px; }
+
+    /* Back to top */
+    #btt { position: fixed; bottom: 28px; right: 28px; width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; border: none; cursor: pointer; font-size: 1.1rem; box-shadow: 0 4px 14px rgba(102,126,234,.45); opacity: 0; transform: translateY(10px); transition: opacity .3s, transform .3s; z-index: 100; }
+    #btt.show { opacity: 1; transform: translateY(0); }
+  </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Maandamano Mondays Sentiment Analysis</h1>
-        <p>Comprehensive Report on Public Sentiment and Economic Impact</p>
-        <p><strong>Generated on:</strong> 2025-07-14 19:20:05</p>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>Maandamano Mondays Sentiment Analysis</h1>
+    <p>Comprehensive Report on Public Sentiment and Economic Impact</p>
+    <p class="meta">Generated: 2025-07-14 19:20:05 &nbsp;·&nbsp; Model: Cardiff NLP Twitter XLM-RoBERTa</p>
+  </div>
+
+  <!-- Alert (fixed class — no double "alert alert") -->
+  <div class="alert success">
+    ✅ STABLE: Sentiment distribution appears balanced with manageable concern levels.
+  </div>
+
+  <!-- Summary cards -->
+  <div class="cards">
+    <div class="card">
+      <div class="card-title">📊 Dataset Overview</div>
+      <div class="stat-row"><span class="stat-label">Total Tweets</span><span class="stat-value">2,002</span></div>
+      <div class="stat-row"><span class="stat-label">Unique Users</span><span class="stat-value">622</span></div>
+      <div class="stat-row"><span class="stat-label">Unique Hashtags</span><span class="stat-value">59</span></div>
+      <div class="stat-row"><span class="stat-label">Avg Confidence</span><span class="stat-value">0.565</span></div>
     </div>
-
-    <div class="summary-cards">
-        <div class="card">
-            <h3>📊 Dataset Overview</h3>
-            <p><strong>Total Tweets:</strong> 2,002</p>
-            <p><strong>Unique Users:</strong> 622</p>
-            <p><strong>Unique Hashtags:</strong> 59</p>
-            <p><strong>Avg Confidence:</strong> 0.565</p>
-        </div>
-        
-        <div class="card">
-            <h3>😊 Sentiment Distribution</h3>
-            <div class="sentiment-bar">
-                <div class="sentiment-negative" style="width: 36.2%"></div>
-                <div class="sentiment-neutral" style="width: 50.3%"></div>
-                <div class="sentiment-positive" style="width: 13.5%"></div>
-            </div>
-            <p>🔴 Negative: 36.2%</p>
-            <p>⚪ Neutral: 50.3%</p>
-            <p>🟢 Positive: 13.5%</p>
-        </div>
-        
-        <div class="card">
-            <h3>📈 Key Metrics</h3>
-            <p><strong>Dominant Sentiment:</strong> MIXED</p>
-            <p><strong>Concern Level:</strong> MODERATE CONCERN</p>
-            <p><strong>Economic Tweets:</strong> 336</p>
-            <p><strong>Coverage:</strong> 77.5% of raw data</p>
-        </div>
-        
-        <div class="card">
-            <h3>👥 User Engagement</h3>
-            <p><strong>Most Active:</strong> @BeingCharlie</p>
-            <p><strong>Multi-tweet Users:</strong> 622</p>
-            <p><strong>Avg Tweets/User:</strong> 3.2</p>
-            <p><strong>Top Hashtag:</strong> #MaandamanoThursdays</p>
-        </div>
+    <div class="card">
+      <div class="card-title">😊 Sentiment Distribution</div>
+      <!-- Flexbox stacked bar — replaces broken float layout -->
+      <div class="sentiment-stack">
+        <div class="seg seg-neg">36%</div>
+        <div class="seg seg-neu">50%</div>
+        <div class="seg seg-pos">14%</div>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><div class="dot" style="background:var(--neg)"></div>Negative 36.2%</div>
+        <div class="legend-item"><div class="dot" style="background:var(--neu)"></div>Neutral 50.3%</div>
+        <div class="legend-item"><div class="dot" style="background:var(--pos)"></div>Positive 13.5%</div>
+      </div>
     </div>
-
-    <div class="alert alert">✅ STABLE: Sentiment distribution appears balanced with manageable concern levels</div>
-
-    <div class="chart-container">
-        <h3>🏷️ Top Hashtags by Volume</h3>
-        <div class="bar-chart">
-            
-        <div class="bar-item">
-            <div class="bar-label">#MaandamanoThursdays</div>
-            <div class="bar" style="width: 100.0%; background: #4CAF50;"></div>
-            <div class="bar-value">1662</div>
-        </div>
-        
-        <div class="bar-item">
-            <div class="bar-label">#Maandamano</div>
-            <div class="bar" style="width: 21.058965102286404%; background: #4CAF50;"></div>
-            <div class="bar-value">350</div>
-        </div>
-        
-        <div class="bar-item">
-            <div class="bar-label">#Raila</div>
-            <div class="bar" style="width: 19.43441636582431%; background: #4CAF50;"></div>
-            <div class="bar-value">323</div>
-        </div>
-        
-        <div class="bar-item">
-            <div class="bar-label">#MaandamanoMondays</div>
-            <div class="bar" style="width: 16.967509025270758%; background: #4CAF50;"></div>
-            <div class="bar-value">282</div>
-        </div>
-        
-        <div class="bar-item">
-            <div class="bar-label">#RailaOdinga</div>
-            <div class="bar" style="width: 9.927797833935017%; background: #4CAF50;"></div>
-            <div class="bar-value">165</div>
-        </div>
-        
-        <div class="bar-item">
-            <div class="bar-label">#Azimio</div>
-            <div class="bar" style="width: 4.993983152827918%; background: #4CAF50;"></div>
-            <div class="bar-value">83</div>
-        </div>
-        
-        <div class="bar-item">
-            <div class="bar-label">#Nairobi</div>
-            <div class="bar" style="width: 4.21179302045728%; background: #4CAF50;"></div>
-            <div class="bar-value">70</div>
-        </div>
-        
-        <div class="bar-item">
-            <div class="bar-label">#MaandamanoThursday</div>
-            <div class="bar" style="width: 3.9711191335740073%; background: #4CAF50;"></div>
-            <div class="bar-value">66</div>
-        </div>
-        
-        <div class="bar-item">
-            <div class="bar-label">#CostOfLivingCrisis</div>
-            <div class="bar" style="width: 3.0084235860409145%; background: #4CAF50;"></div>
-            <div class="bar-value">50</div>
-        </div>
-        
-        <div class="bar-item">
-            <div class="bar-label">#Kenya</div>
-            <div class="bar" style="width: 2.7677496991576414%; background: #4CAF50;"></div>
-            <div class="bar-value">46</div>
-        </div>
-        
-        </div>
+    <div class="card">
+      <div class="card-title">📈 Key Metrics</div>
+      <div class="stat-row"><span class="stat-label">Dominant Sentiment</span><span class="stat-value">MIXED</span></div>
+      <div class="stat-row"><span class="stat-label">Concern Level</span><span class="stat-value">MODERATE</span></div>
+      <div class="stat-row"><span class="stat-label">Economic Tweets</span><span class="stat-value">336</span></div>
+      <div class="stat-row"><span class="stat-label">Data Coverage</span><span class="stat-value">77.5%</span></div>
     </div>
-
-    <div class="chart-container">
-        <h3>👤 Most Active Users</h3>
-        <div class="bar-chart">
-            
-        <div class="bar-item">
-            <div class="bar-label">@BeingCharlie</div>
-            <div class="bar" style="width: 100.0%; background: #2196F3;"></div>
-            <div class="bar-value">50</div>
-        </div>
-        
-        <div class="bar-item">
-            <div class="bar-label">@HarryGodfirst</div>
-            <div class="bar" style="width: 64.0%; background: #2196F3;"></div>
-            <div class="bar-value">32</div>
-        </div>
-        
-        <div class="bar-item">
-            <div class="bar-label">@authenttick</div>
-            <div class="bar" style="width: 52.0%; background: #2196F3;"></div>
-            <div class="bar-value">26</div>
-        </div>
-        
-        <div class="bar-item">
-            <div class="bar-label">@Tasha_ke746</div>
-            <div class="bar" style="width: 44.0%; background: #2196F3;"></div>
-            <div class="bar-value">22</div>
-        </div>
-        
-        <div class="bar-item">
-            <div class="bar-label">@Jeshi_LaBABA</div>
-            <div class="bar" style="width: 44.0%; background: #2196F3;"></div>
-            <div class="bar-value">22</div>
-        </div>
-        
-        <div class="bar-item">
-            <div class="bar-label">@Ke_Dictionary</div>
-            <div class="bar" style="width: 40.0%; background: #2196F3;"></div>
-            <div class="bar-value">20</div>
-        </div>
-        
-        <div class="bar-item">
-            <div class="bar-label">@Reptile_ke</div>
-            <div class="bar" style="width: 40.0%; background: #2196F3;"></div>
-            <div class="bar-value">20</div>
-        </div>
-        
-        <div class="bar-item">
-            <div class="bar-label">@njagi_dave</div>
-            <div class="bar" style="width: 32.0%; background: #2196F3;"></div>
-            <div class="bar-value">16</div>
-        </div>
-        
-        <div class="bar-item">
-            <div class="bar-label">@CosnameTv1</div>
-            <div class="bar" style="width: 32.0%; background: #2196F3;"></div>
-            <div class="bar-value">16</div>
-        </div>
-        
-        <div class="bar-item">
-            <div class="bar-label">@SanyaNabwana</div>
-            <div class="bar" style="width: 32.0%; background: #2196F3;"></div>
-            <div class="bar-value">16</div>
-        </div>
-        
-        </div>
+    <div class="card">
+      <div class="card-title">👥 User Engagement</div>
+      <div class="stat-row"><span class="stat-label">Most Active</span><span class="stat-value">@BeingCharlie</span></div>
+      <div class="stat-row"><span class="stat-label">Multi-tweet Users</span><span class="stat-value">622</span></div>
+      <div class="stat-row"><span class="stat-label">Avg Tweets / User</span><span class="stat-value">3.2</span></div>
+      <div class="stat-row"><span class="stat-label">Top Hashtag</span><span class="stat-value">#MaandamanoThursdays</span></div>
     </div>
+  </div>
 
-    <div class="chart-container">
-        <h3>💼 Economic Impact Analysis</h3>
-        <table>
-            <tr>
-                <th>Metric</th>
-                <th>Count</th>
-                <th>Percentage</th>
-            </tr>
-            <tr>
-                <td>Business-related tweets</td>
-                <td>163</td>
-                <td>8.1%</td>
-            </tr>
-            <tr>
-                <td>Economic-related tweets</td>
-                <td>113</td>
-                <td>5.6%</td>
-            </tr>
-            <tr>
-                <td>Protest impact mentions</td>
-                <td>97</td>
-                <td>4.8%</td>
-            </tr>
-        </table>
+  <!-- Sentiment doughnut + Economic doughnut -->
+  <div class="chart-row">
+    <div class="chart-card">
+      <h3>😊 Sentiment Breakdown</h3>
+      <canvas id="sentimentChart"></canvas>
     </div>
-
-    <div class="chart-container">
-        <h3>🔤 Key Terms by Sentiment</h3>
-        <h4>Negative Sentiment Key Terms</h4><div class="bar-chart">
-                <div class="bar-item">
-                    <div class="bar-label">police</div>
-                    <div class="bar" style="width: 80.0%; background: #ff4444;"></div>
-                    <div class="bar-value">136</div>
-                </div>
-                
-                <div class="bar-item">
-                    <div class="bar-label">raila</div>
-                    <div class="bar" style="width: 46.47058823529412%; background: #ff4444;"></div>
-                    <div class="bar-value">79</div>
-                </div>
-                
-                <div class="bar-item">
-                    <div class="bar-label">road</div>
-                    <div class="bar" style="width: 43.52941176470588%; background: #ff4444;"></div>
-                    <div class="bar-value">74</div>
-                </div>
-                
-                <div class="bar-item">
-                    <div class="bar-label">this</div>
-                    <div class="bar" style="width: 38.23529411764706%; background: #ff4444;"></div>
-                    <div class="bar-value">65</div>
-                </div>
-                
-                <div class="bar-item">
-                    <div class="bar-label">outering</div>
-                    <div class="bar" style="width: 37.64705882352941%; background: #ff4444;"></div>
-                    <div class="bar-value">64</div>
-                </div>
-                
-                <div class="bar-item">
-                    <div class="bar-label">kisumu</div>
-                    <div class="bar" style="width: 37.05882352941177%; background: #ff4444;"></div>
-                    <div class="bar-value">63</div>
-                </div>
-                
-                <div class="bar-item">
-                    <div class="bar-label">people</div>
-                    <div class="bar" style="width: 35.294117647058826%; background: #ff4444;"></div>
-                    <div class="bar-value">60</div>
-                </div>
-                
-                <div class="bar-item">
-                    <div class="bar-label">pipeline</div>
-                    <div class="bar" style="width: 32.94117647058823%; background: #ff4444;"></div>
-                    <div class="bar-value">56</div>
-                </div>
-                
-                <div class="bar-item">
-                    <div class="bar-label">kenya</div>
-                    <div class="bar" style="width: 32.35294117647059%; background: #ff4444;"></div>
-                    <div class="bar-value">55</div>
-                </div>
-                
-                <div class="bar-item">
-                    <div class="bar-label">university</div>
-                    <div class="bar" style="width: 28.823529411764707%; background: #ff4444;"></div>
-                    <div class="bar-value">49</div>
-                </div>
-                </div><h4>Neutral Sentiment Key Terms</h4><div class="bar-chart">
-                <div class="bar-item">
-                    <div class="bar-label">raila</div>
-                    <div class="bar" style="width: 80.0%; background: #888888;"></div>
-                    <div class="bar-value">92</div>
-                </div>
-                
-                <div class="bar-item">
-                    <div class="bar-label">police</div>
-                    <div class="bar" style="width: 78.26086956521739%; background: #888888;"></div>
-                    <div class="bar-value">90</div>
-                </div>
-                
-                <div class="bar-item">
-                    <div class="bar-label">this</div>
-                    <div class="bar" style="width: 77.39130434782608%; background: #888888;"></div>
-                    <div class="bar-value">89</div>
-                </div>
-                
-                <div class="bar-item">
-                    <div class="bar-label">kenya</div>
-                    <div class="bar" style="width: 57.391304347826086%; background: #888888;"></div>
-                    <div class="bar-value">66</div>
-                </div>
-                
-                <div class="bar-item">
-                    <div class="bar-label">that</div>
-                    <div class="bar" style="width: 56.52173913043478%; background: #888888;"></div>
-                    <div class="bar-value">65</div>
-                </div>
-                
-                <div class="bar-item">
-                    <div class="bar-label">pipeline</div>
-                    <div class="bar" style="width: 49.565217391304344%; background: #888888;"></div>
-                    <div class="bar-value">57</div>
-                </div>
-                
-                <div class="bar-item">
-                    <div class="bar-label">outering</div>
-                    <div class="bar" style="width: 47.826086956521735%; background: #888888;"></div>
-                    <div class="bar-value">55</div>
-                </div>
-                
-                <div class="bar-item">
-                    <div class="bar-label">road</div>
-                    <div class="bar" style="width: 47.826086956521735%; background: #888888;"></div>
-                    <div class="bar-value">55</div>
-                </div>
-                
-                <div class="bar-item">
-                    <div class="bar-label">kisumu</div>
-                    <div class="bar" style="width: 46.08695652173913%; background: #888888;"></div>
-                    <div class="bar-value">53</div>
-                </div>
-                
-                <div class="bar-item">
-                    <div class="bar-label">people</div>
-                    <div class="bar" style="width: 45.21739130434782%; background: #888888;"></div>
-                    <div class="bar-value">52</div>
-                </div>
-                </div><h4>Positive Sentiment Key Terms</h4><div class="bar-chart">
-                <div class="bar-item">
-                    <div class="bar-label">this</div>
-                    <div class="bar" style="width: 80.0%; background: #44ff44;"></div>
-                    <div class="bar-value">46</div>
-                </div>
-                
-                <div class="bar-item">
-                    <div class="bar-label">babu</div>
-                    <div class="bar" style="width: 78.26086956521739%; background: #44ff44;"></div>
-                    <div class="bar-value">45</div>
-                </div>
-                
-                <div class="bar-item">
-                    <div class="bar-label">owino</div>
-                    <div class="bar" style="width: 78.26086956521739%; background: #44ff44;"></div>
-                    <div class="bar-value">45</div>
-                </div>
-                
-                <div class="bar-item">
-                    <div class="bar-label">raila</div>
-                    <div class="bar" style="width: 62.608695652173914%; background: #44ff44;"></div>
-                    <div class="bar-value">36</div>
-                </div>
-                
-                <div class="bar-item">
-                    <div class="bar-label">police</div>
-                    <div class="bar" style="width: 62.608695652173914%; background: #44ff44;"></div>
-                    <div class="bar-value">36</div>
-                </div>
-                
-                <div class="bar-item">
-                    <div class="bar-label">road</div>
-                    <div class="bar" style="width: 62.608695652173914%; background: #44ff44;"></div>
-                    <div class="bar-value">36</div>
-                </div>
-                
-                <div class="bar-item">
-                    <div class="bar-label">pwani</div>
-                    <div class="bar" style="width: 53.91304347826087%; background: #44ff44;"></div>
-                    <div class="bar-value">31</div>
-                </div>
-                
-                <div class="bar-item">
-                    <div class="bar-label">university</div>
-                    <div class="bar" style="width: 52.173913043478265%; background: #44ff44;"></div>
-                    <div class="bar-value">30</div>
-                </div>
-                
-                <div class="bar-item">
-                    <div class="bar-label">kisumu</div>
-                    <div class="bar" style="width: 50.434782608695656%; background: #44ff44;"></div>
-                    <div class="bar-value">29</div>
-                </div>
-                
-                <div class="bar-item">
-                    <div class="bar-label">peaceful</div>
-                    <div class="bar" style="width: 50.434782608695656%; background: #44ff44;"></div>
-                    <div class="bar-value">29</div>
-                </div>
-                </div>
+    <div class="chart-card">
+      <h3>💼 Economic Impact Overview</h3>
+      <canvas id="economicChart"></canvas>
     </div>
+  </div>
 
-    <div class="recommendations"><h3>💡 Key Recommendations</h3>
-        <h4>✅ Monitoring and Maintenance:</h4>
-        <ul>
-            <li>Continue monitoring sentiment trends for early warning signs</li>
-            <li>Maintain open communication channels</li>
-            <li>Support economic recovery in affected areas</li>
-            <li>Build on positive sentiment to strengthen public confidence</li>
-        </ul>
-        
-    <h4>📊 Long-term Strategic Actions:</h4>
+  <!-- Hashtags horizontal bar -->
+  <div class="chart-card-full">
+    <h3>🏷️ Top Hashtags by Volume</h3>
+    <canvas id="hashtagChart"></canvas>
+  </div>
+
+  <!-- Users horizontal bar -->
+  <div class="chart-card-full">
+    <h3>👤 Most Active Users</h3>
+    <canvas id="usersChart"></canvas>
+  </div>
+
+  <!-- Economic impact table with mini bars -->
+  <div class="chart-card-full">
+    <h3>💼 Economic Impact Detail</h3>
+    <table>
+      <thead>
+        <tr><th>Category</th><th>Count</th><th>Share</th><th>Distribution</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Business-related tweets</td><td>163</td><td>8.1%</td>
+          <td><div class="mini-track"><div class="mini-fill" style="width:81%"></div></div></td>
+        </tr>
+        <tr>
+          <td>Economic-related tweets</td><td>113</td><td>5.6%</td>
+          <td><div class="mini-track"><div class="mini-fill" style="width:56%"></div></div></td>
+        </tr>
+        <tr>
+          <td>Protest impact mentions</td><td>97</td><td>4.8%</td>
+          <td><div class="mini-track"><div class="mini-fill" style="width:48%"></div></div></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Key terms — tab interface (stopwords "this"/"that" removed) -->
+  <div class="chart-card-full">
+    <h3>🔤 Key Terms by Sentiment</h3>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('neg')">🔴 Negative</button>
+      <button class="tab-btn" onclick="switchTab('neu')">⚪ Neutral</button>
+      <button class="tab-btn" onclick="switchTab('pos')">🟢 Positive</button>
+    </div>
+    <div id="tab-neg" class="tab-panel active"><canvas id="negChart"></canvas></div>
+    <div id="tab-neu" class="tab-panel"><canvas id="neuChart"></canvas></div>
+    <div id="tab-pos" class="tab-panel"><canvas id="posChart"></canvas></div>
+  </div>
+
+  <!-- Recommendations -->
+  <div class="rec">
+    <h3>💡 Key Recommendations</h3>
+    <h4>✅ Monitoring and Maintenance</h4>
     <ul>
-        <li>Develop sentiment monitoring system for early detection of issues</li>
-        <li>Create economic impact assessment framework for future protests</li>
-        <li>Establish regular stakeholder engagement mechanisms</li>
-        <li>Implement transparency measures to build public trust</li>
+      <li>Continue monitoring sentiment trends for early warning signs</li>
+      <li>Maintain open communication channels with all stakeholders</li>
+      <li>Support economic recovery in affected areas</li>
+      <li>Build on positive sentiment to strengthen public confidence</li>
     </ul>
-    </div>
+    <h4>📊 Long-term Strategic Actions</h4>
+    <ul>
+      <li>Develop a sentiment monitoring system for early detection of issues</li>
+      <li>Create an economic impact assessment framework for future protests</li>
+      <li>Establish regular stakeholder engagement mechanisms</li>
+      <li>Implement transparency measures to build public trust</li>
+    </ul>
+  </div>
 
-    <div class="footer">
-        <p>Report generated using sentiment analysis on 2,002 tweets</p>
-        <p>Methodology: Cardiff NLP Twitter XLM-RoBERTa sentiment classification</p>
-        <p>For questions or additional analysis, contact the research team</p>
-    </div>
+  <!-- Footer -->
+  <div class="footer">
+    <p>Report generated from sentiment analysis on <strong>2,002 tweets</strong></p>
+    <p>Methodology: Cardiff NLP Twitter XLM-RoBERTa sentiment classification</p>
+    <p>For questions or additional analysis, contact the research team</p>
+  </div>
+</div>
+
+<!-- Back to top -->
+<button id="btt" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top">↑</button>
+
+<script>
+  // Back to top visibility
+  window.addEventListener('scroll', () => {
+    document.getElementById('btt').classList.toggle('show', window.scrollY > 300);
+  });
+
+  // Tab switching
+  function switchTab(id) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + id).classList.add('active');
+    event.target.classList.add('active');
+    // Trigger chart resize on tab reveal
+    window.dispatchEvent(new Event('resize'));
+  }
+
+  const tooltipPlugin = { plugins: { tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y ?? ctx.parsed.x} tweets` } } } };
+
+  // Sentiment doughnut
+  new Chart(document.getElementById('sentimentChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Negative 36.2%', 'Neutral 50.3%', 'Positive 13.5%'],
+      datasets: [{ data: [36.2, 50.3, 13.5], backgroundColor: ['#ef4444','#94a3b8','#22c55e'], borderWidth: 0, hoverOffset: 6 }]
+    },
+    options: { cutout: '68%', plugins: { legend: { position: 'bottom', labels: { padding: 16, font: { family: 'Inter', size: 12 } } }, tooltip: { callbacks: { label: ctx => ` ${ctx.parsed}%` } } } }
+  });
+
+  // Economic doughnut
+  new Chart(document.getElementById('economicChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Business tweets (8.1%)', 'Economic tweets (5.6%)', 'Protest impact (4.8%)', 'Other (81.5%)'],
+      datasets: [{ data: [163, 113, 97, 1629], backgroundColor: ['#667eea','#764ba2','#f59e0b','#e2e8f0'], borderWidth: 0, hoverOffset: 6 }]
+    },
+    options: { cutout: '68%', plugins: { legend: { position: 'bottom', labels: { padding: 14, font: { family: 'Inter', size: 11 } } }, tooltip: { callbacks: { label: ctx => ` ${ctx.parsed} tweets` } } } }
+  });
+
+  // Hashtags horizontal bar
+  new Chart(document.getElementById('hashtagChart'), {
+    type: 'bar',
+    data: {
+      labels: ['#MaandamanoThursdays','#Maandamano','#Raila','#MaandamanoMondays','#RailaOdinga','#Azimio','#Nairobi','#MaandamanoThursday','#CostOfLivingCrisis','#Kenya'],
+      datasets: [{ data: [1662,350,323,282,165,83,70,66,50,46], backgroundColor: 'rgba(102,126,234,0.8)', borderRadius: 6, borderSkipped: false }]
+    },
+    options: {
+      indexAxis: 'y',
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.x} mentions` } } },
+      scales: { x: { grid: { color: '#f0f4f8' }, ticks: { font: { family: 'Inter', size: 11 } } }, y: { grid: { display: false }, ticks: { font: { family: 'Inter', size: 12 } } } }
+    }
+  });
+
+  // Users horizontal bar
+  new Chart(document.getElementById('usersChart'), {
+    type: 'bar',
+    data: {
+      labels: ['@BeingCharlie','@HarryGodfirst','@authenttick','@Tasha_ke746','@Jeshi_LaBABA','@Ke_Dictionary','@Reptile_ke','@njagi_dave','@CosnameTv1','@SanyaNabwana'],
+      datasets: [{ data: [50,32,26,22,22,20,20,16,16,16], backgroundColor: 'rgba(118,75,162,0.8)', borderRadius: 6, borderSkipped: false }]
+    },
+    options: {
+      indexAxis: 'y',
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.x} tweets` } } },
+      scales: { x: { grid: { color: '#f0f4f8' }, ticks: { font: { family: 'Inter', size: 11 } } }, y: { grid: { display: false }, ticks: { font: { family: 'Inter', size: 12 } } } }
+    }
+  });
+
+  // Key terms — stopwords "this" and "that" removed
+  const termOpts = color => ({
+    type: 'bar',
+    options: {
+      indexAxis: 'y',
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.x} occurrences` } } },
+      scales: { x: { grid: { color: '#f0f4f8' }, ticks: { font: { family: 'Inter', size: 11 } } }, y: { grid: { display: false }, ticks: { font: { family: 'Inter', size: 12 } } } }
+    },
+    data: { datasets: [{ backgroundColor: color, borderRadius: 6, borderSkipped: false }] }
+  });
+
+  const negOpts = termOpts('rgba(239,68,68,0.8)');
+  negOpts.data.labels = ['police','raila','road','outering','kisumu','people','pipeline','kenya','university'];
+  negOpts.data.datasets[0].data = [136,79,74,64,63,60,56,55,49];
+  new Chart(document.getElementById('negChart'), negOpts);
+
+  const neuOpts = termOpts('rgba(148,163,184,0.85)');
+  neuOpts.data.labels = ['raila','police','kenya','pipeline','outering','road','kisumu','people'];
+  neuOpts.data.datasets[0].data = [92,90,66,57,55,55,53,52];
+  new Chart(document.getElementById('neuChart'), neuOpts);
+
+  const posOpts = termOpts('rgba(34,197,94,0.8)');
+  posOpts.data.labels = ['babu','owino','raila','police','road','pwani','university','kisumu','peaceful'];
+  posOpts.data.datasets[0].data = [45,45,36,36,36,31,30,29,29];
+  new Chart(document.getElementById('posChart'), posOpts);
+</script>
 </body>
 </html>
